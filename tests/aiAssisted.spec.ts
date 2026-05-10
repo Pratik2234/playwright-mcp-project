@@ -1,15 +1,31 @@
 
-import test from "@playwright/test";
-import { initializeMCP } from "../utils/mcpClient";
+import {test,expect} from "@playwright/test";
+import { initializeMCP } from "../utils/mcpClient.js";
 
-test('AI assisted validation' , async ({page})=>{
+test('AI login validation', async ({ page }) => {
 
-     const client = await initializeMCP()
+    const client = await initializeMCP()
 
-     await page.goto('https://example.com')
+    await page.goto('https://www.saucedemo.com')
+    await page.locator('#user-name').fill('standard_user')
+    await page.locator('#password').fill('secret_sauce')
+    await page.locator('#login-button').click()
+  
+    const pageText=await page.locator('body').innerText()
 
-     const title = await page.title()
+    const result = await client.callTool({
+        name:'validate-login',
+        arguments:{
+            pageText
+        }
+    }) 
+    console.log(result)
 
-     console.log('Page Title : ',title)
+    const content =result.content as Array<{
+        type:string;
+        text:string;
+    }>
+
+    expect(content[0].text).toBe('LOGIN_SUCCESS')
 
 })
